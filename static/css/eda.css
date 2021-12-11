@@ -1,0 +1,52 @@
+html,body{ 
+  margin:0; 
+  padding:0; 
+  height:100%; 
+  width:100%;
+  font-family: 'Open Sans', sans-serif;
+  padding-top: 45px;
+  text-align: center;
+}
+
+h1, h2 {
+  text-align: center;
+}
+
+.form-group {
+  margin: auto;
+  width: 80%;
+}
+
+form {
+  margin: auto;
+  width: 80%;
+}
+
+input {
+  margin: auto;
+  text-align: center;
+}
+
+#form-container {
+  margin: auto;
+  width: 60%;
+  padding-top: 3%;
+  padding-bottom: 3%;
+}
+
+table {
+  margin: auto;
+}
+
+.visible {
+  display: inline-block;
+}
+
+.invisible {
+  display: none;
+}
+
+.form-check .form-check-input {
+  float: none;
+  margin-left: -1.5em;
+}

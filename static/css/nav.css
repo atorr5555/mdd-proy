@@ -1,0 +1,54 @@
+#logo {
+	height: inherit;
+	width: inherit;
+	max-height: 50px;
+	max-width: 250px;
+}
+
+nav {
+	box-shadow: 0 2px 4px 0 rgba(0,0,0,.4);
+}
+
+.navbar {
+	background-color: #1b1b1b;
+	padding-top: 0;
+	padding-bottom: 0%;
+	padding-left: 0;
+	padding-right: 0;
+	position: fixed;
+	width: 100%;
+	left: 0;
+	top: 0;
+	z-index: 100;
+	border-top: 0;
+}
+
+.navbar-light .navbar-nav .nav-link {
+	color: rgba(0,0,0,1);
+}
+
+.navbar>.container-fluid>.navbar-header, .navbar>.container-fluid>.navbar-header>.navbar-brand{
+	height: inherit;
+} 
+
+.navbar>.container-fluid {
+	margin-left:  2%;
+	margin-right: 2%;
+	margin-top:  0%;
+	margin-bottom: 0%;
+	height: 100%;
+}
+
+.navbar-brand>img {
+	height: 100%;
+	width: auto;
+}
+
+.navbar.navbar-default {
+	 height: 5vh;
+	 min-height: 10px; 
+}
+
+.navbar-nav {
+  margin: auto;
+}
