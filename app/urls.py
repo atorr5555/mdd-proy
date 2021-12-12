@@ -12,5 +12,9 @@ urlpatterns = [
   path('pca/', views.pca),
   path('pca/process', views.pca_process),
   path('clustering/', views.clustering),
-  path('column-list', views.column)
+  path('column-list', views.column),
+  path('clustering/process', views.clustering_process),
+  path('column-listk', views.column_kmeans),
+  path('kmeans/', views.kmeans),
+  path('kmeans/process', views.kmeans_process),
 ]

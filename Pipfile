@@ -10,6 +10,8 @@ numpy = "*"
 matplotlib = "*"
 seaborn = "*"
 sklearn = "*"
+kneed = "*"
+apyori = "*"
 
 [dev-packages]
 

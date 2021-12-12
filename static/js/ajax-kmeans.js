@@ -1,4 +1,3 @@
-
 $(document).ready(function () {
   function upload(event) {
     event.preventDefault();
@@ -23,14 +22,6 @@ $(document).ready(function () {
           `
           $(".form-check").append(tmp);
         }
-        $(".form-check").append(`
-          <input type="number" name="n_clusters" id="n_clusters">
-          <label class="form-check-label" for="n_clusters">Número de clusters</label>
-        `);
-        $("#form-variables").append(`
-        
-        `);
-        $("body").append(`<img class="images-width" src="/static/media/tmdd-arbol.png">`);
         loadingFunct()
         change()
       }

@@ -96,6 +96,8 @@
 
     {% endfor %}
 
+    {% if res_estadistico_cat %}
+
     <h4>Distribución de variables categóricas</h4>
 
     <div class="table-container">
@@ -107,6 +109,9 @@
     <img src="/{{i}}">
 
     {% endfor %}
+
+    {% endif %}
+    
 
     <h4>Correlaciones entre variables</h4>
 

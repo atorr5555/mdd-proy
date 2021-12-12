@@ -57,12 +57,12 @@
     </div>
   </nav>
 
-  <h1>Clustering Jerárquico</h1>
+  <h1>K-Means</h1>
 
-  <h2>Algoritmo de Clustering</h2>
+  <h2>Algoritmo de Clustering Particional</h2>
 
   <div id="form-container">
-    <form enctype="multipart/form-data" method="POST" id="form-file" action="/app/column-list">
+    <form enctype="multipart/form-data" method="POST" id="form-file" action="/app/column-listk">
       {% csrf_token %}
       <div class="form-group">
         <label for="exampleFormControlFile1">Seleccionar archivo csv</label><br>
@@ -95,7 +95,7 @@
     crossorigin="anonymous"></script>
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"
     integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
-  <script src="{% static 'js/ajax-cluster.js' %}"></script>
+  <script src="{% static 'js/ajax-kmeans.js' %}"></script>
 </body>
 
 </html>
