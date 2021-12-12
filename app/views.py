@@ -22,23 +22,20 @@ from .handle_form import handle_uploaded_file
 
 # Create your views here.
 def index(request):
-  os.system('rm static/media/tmdd-*.png')
+  os.system('rm -f static/media/tmdd-*.png')
   #return HttpResponse('Hello')
   return render(request, 'index.html')
 
 def eda(request):
-  os.system('rm static/media/tmdd-*.png')
-  if request.method == 'POST':
-    form = UploadFileForm(request.POST, request.FILES)
-    if form.is_valid():
-      handle_uploaded_file(request.FILES['file'])
-      return HttpResponseRedirect('/app/eda/process')
-  else:
-    form = UploadFileForm()
+  os.system('rm -f static/media/tmdd-*.png')
+  form = UploadFileForm()
   return render(request, 'eda.html', {'form': form})
 
 # Procesamiento para tratar la eda
 def eda_process(request):
+  form = UploadFileForm(request.POST, request.FILES)
+  if form.is_valid():
+    handle_uploaded_file(request.FILES['file'])
   if not os.path.exists('media/data.csv'):
     return HttpResponseRedirect('/app/eda')
   dict_params = {}
@@ -108,18 +105,15 @@ def eda_process(request):
   return render(request, 'eda-processed.html', dict_params)
 
 def acd(request):
-  os.system('rm static/media/tmdd-*.png')
-  if request.method == 'POST':
-    form = UploadFileForm(request.POST, request.FILES)
-    if form.is_valid():
-      handle_uploaded_file(request.FILES['file'])
-      return HttpResponseRedirect('/app/acd/process')
-  else:
-    form = UploadFileForm()
+  os.system('rm -f static/media/tmdd-*.png')
+  form = UploadFileForm()
   return render(request, 'acd.html', {'form': form})
 
 # Procesamiento para tratar la acd
 def acd_process(request):
+  form = UploadFileForm(request.POST, request.FILES)
+  if form.is_valid():
+    handle_uploaded_file(request.FILES['file'])
   if not os.path.exists('media/data.csv'):
     return HttpResponseRedirect('/app/acd')
   # Leer datos
@@ -170,18 +164,15 @@ def download(request):
     return response
 
 def pca(request):
-  os.system('rm static/media/tmdd-*.png')
-  if request.method == 'POST':
-    form = UploadFileForm(request.POST, request.FILES)
-    if form.is_valid():
-      handle_uploaded_file(request.FILES['file'])
-      return HttpResponseRedirect('/app/pca/process')
-  else:
-    form = UploadFileForm()
+  os.system('rm -f static/media/tmdd-*.png')
+  form = UploadFileForm()
   return render(request, 'pca.html', {'form': form})
 
 # Procesamiento para tratar la pca
 def pca_process(request):
+  form = UploadFileForm(request.POST, request.FILES)
+  if form.is_valid():
+    handle_uploaded_file(request.FILES['file'])
   if not os.path.exists('media/data.csv'):
     return HttpResponseRedirect('/app/pca')
   # Leer datos
@@ -214,23 +205,8 @@ def pca_process(request):
                                                 'cargas': cargas})
 
 def clustering(request):
-  os.system('rm static/media/tmdd-*.png')
-  if request.method == 'POST':
-    datos = pd.read_csv('media/data.csv')
-    dicti = {}
-    for x in datos.columns:
-      dicti[x] = bool(request.POST.get(x, 0))
-    new_cols = []
-    for key in dicti:
-      if dicti[key]:
-        new_cols.append(key)
-    datos = datos[new_cols]
-    datos.to_csv(index=False, path_or_buf='media/data.csv')
-    with open('media/n_clusters', 'w') as destination:
-      destination.write(request.POST.get('n_clusters', 0))
-    return HttpResponseRedirect('/app/clustering/process')
-  else:
-    form = UploadFileForm()
+  os.system('rm -f static/media/tmdd-*.png')
+  form = UploadFileForm()
   return render(request, 'clustering.html', {'form': form})
 
 def column(request):
@@ -264,6 +240,15 @@ def clustering_process(request):
     return HttpResponseRedirect('/app/pca')
   # Leer datos
   datos = pd.read_csv('media/data.csv')
+  dicti = {}
+  for x in datos.columns:
+    dicti[x] = bool(request.POST.get(x, 0))
+  new_cols = []
+  for key in dicti:
+    if dicti[key]:
+      new_cols.append(key)
+  datos = datos[new_cols]
+  n_clustersv = int(request.POST.get('n_clusters', 0))
   columnas_datos = datos.select_dtypes([np.number]).columns
   datos = datos[columnas_datos]
   # Estandarizar datos
@@ -276,9 +261,6 @@ def clustering_process(request):
   plt.ylabel('Distancia')
   Arbol = shc.dendrogram(shc.linkage(MEstandarizada, method='complete', metric='euclidean'))
   plt.savefig('static/media/tmdd-arbol.png')
-  n_clustersv = 0
-  with open('media/n_clusters', 'r') as destination:
-    n_clustersv = int(destination.read())
   #Se crean las etiquetas de los elementos en los clústeres
   MJerarquico = AgglomerativeClustering(n_clusters=n_clustersv, linkage='complete', affinity='euclidean')
   MJerarquico.fit_predict(MEstandarizada)
@@ -290,21 +272,8 @@ def clustering_process(request):
                                                        'centroides': centroides})
 
 def kmeans(request):
-  os.system('rm static/media/tmdd-*.png')
-  if request.method == 'POST':
-    datos = pd.read_csv('media/data.csv')
-    dicti = {}
-    for x in datos.columns:
-      dicti[x] = bool(request.POST.get(x, 0))
-    new_cols = []
-    for key in dicti:
-      if dicti[key]:
-        new_cols.append(key)
-    datos = datos[new_cols]
-    datos.to_csv(index=False, path_or_buf='media/data.csv')
-    return HttpResponseRedirect('/app/kmeans/process')
-  else:
-    form = UploadFileForm()
+  os.system('rm -f static/media/tmdd-*.png')
+  form = UploadFileForm()
   return render(request, 'kmeans.html', {'form': form})
 
 def column_kmeans(request):
@@ -326,6 +295,14 @@ def kmeans_process(request):
     return HttpResponseRedirect('/app/pca')
   # Leer datos
   datos = pd.read_csv('media/data.csv')
+  dicti = {}
+  for x in datos.columns:
+    dicti[x] = bool(request.POST.get(x, 0))
+  new_cols = []
+  for key in dicti:
+    if dicti[key]:
+      new_cols.append(key)
+  datos = datos[new_cols]
   columnas_datos = datos.select_dtypes([np.number]).columns
   datos = datos[columnas_datos]
   # Estandarizar datos
@@ -360,3 +337,55 @@ def kmeans_process(request):
 
   return render(request, 'kmeans-processed.html', {'table_est': table_est,
                                                        'centroides': centroides})
+
+def assoc(request):
+  os.system('rm -f static/media/tmdd-*.png')
+  form = UploadFileForm()
+  return render(request, 'assoc.html', {'form': form})
+
+# Procesamiento para tratar la eda
+def assoc_process(request):
+  form = UploadFileForm(request.POST, request.FILES)
+  if form.is_valid():
+    handle_uploaded_file(request.FILES['file'])
+  else:
+    print(form.errors)
+  if not os.path.exists('media/data.csv'):
+    return HttpResponseRedirect('/app/assoc')
+  # Leer datos
+  datos = pd.read_csv('media/data.csv', header=None)
+  table = datos.head().to_html()
+  #Se incluyen todas las transacciones en una sola lista
+  Transacciones = datos.values.reshape(-1).tolist()
+  #Se crea una matriz (dataframe) usando la lista y se incluye una columna 'Frecuencia'
+  ListaM = pd.DataFrame(Transacciones)
+  ListaM['Frecuencia'] = 0
+  #Se agrupa los elementos
+  ListaM = ListaM.groupby(by=[0], as_index=False).count().sort_values(by=['Frecuencia'], ascending=True) #Conteo
+  ListaM['Porcentaje'] = (ListaM['Frecuencia'] / ListaM['Frecuencia'].sum()) #Porcentaje
+  ListaM = ListaM.rename(columns={0 : 'Item'})
+  # Se genera un gráfico de barras
+  plt.figure(figsize=(16,20), dpi=300)
+  plt.ylabel('Item')
+  plt.xlabel('Frecuencia')
+  plt.barh(ListaM['Item'], width=ListaM['Frecuencia'], color='blue')
+  plt.savefig('static/media/tmdd-freq.png')
+
+  MoviesLista = datos.stack().groupby(level=0).apply(list).tolist()
+
+  soporte = float(request.POST.get('soporte', 0))
+  confianza = float(request.POST.get('confianza', 0))
+  elevacion = float(request.POST.get('elevacion', 0))
+  ReglasC1 = apriori(MoviesLista, 
+                   min_support=soporte, 
+                   min_confidence=confianza, 
+                   min_lift=elevacion)
+  ResultadosC1 = list(ReglasC1)
+  df = pd.DataFrame(ResultadosC1)
+  df['confidence'] = df.apply(lambda row : row['ordered_statistics'][0][2], axis = 1)
+  df['lift'] = df.apply(lambda row : row['ordered_statistics'][0][3], axis = 1)
+  df = df.drop(columns=['ordered_statistics'])
+  reglas = df.to_html()
+
+  return render(request, 'assoc-processed.html', {'table': table,
+                                                  'reglas': reglas})

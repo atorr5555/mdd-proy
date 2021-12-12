@@ -57,17 +57,26 @@
     </div>
   </nav>
 
-  <h1>K-Means</h1>
+  <h1>Reglas de asociación</h1>
 
-  <h2>Algoritmo de Clustering Particional</h2>
+  <h2>Apriori</h2>
 
   <div id="form-container">
-    <form enctype="multipart/form-data" method="POST" id="form-file" action="/app/column-listk">
+    <form enctype="multipart/form-data" method="POST" id="form-file" action="/app/assoc/process">
       {% csrf_token %}
       <div class="form-group">
+        <label for="soporte">Soporte mínimo</label>
+        <input type="number" step=".00001" min="0" max="1" required name="soporte" id="soporte"><br>
+
+        <label for="confianza">Confianza mínima</label>
+        <input type="number" step=".00001" min="0" max="1" required name="confianza" id="confianza"><br>
+
+        <label for="elevacion">Elevación mínima</label>
+        <input type="number" step=".00001" min="0" max="10" required name="elevacion" id="elevacion"><br>
+
         <label for="exampleFormControlFile1">Seleccionar archivo csv</label><br>
         {{ form }}
-        <button type="submit" class="btn btn-outline-dark visible" id="upload-btn">Upload</button>
+        <button type="submit" class="btn btn-outline-dark visible" id="upload-btn">Obtener reglas</button>
         <button class="btn btn-primary invisible" type="button" disabled id="loading-btn">
           <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
           Loading...
@@ -76,18 +85,6 @@
     </form>
   </div>
 
-  <form method="POST" id="form-variables" action="/app/kmeans/process">
-    {% csrf_token %}
-    <div class="form-check">
-
-    </div>
-    <button type="submit" class="btn btn-outline-dark invisible" id="upload-btn2">Upload</button>
-    <button class="btn btn-primary invisible" type="button" disabled id="loading-btn2">
-      <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-      Loading...
-    </button>
-  </form>
-
 
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"
@@ -95,7 +92,6 @@
     crossorigin="anonymous"></script>
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"
     integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
-  <script src="{% static 'js/ajax-kmeans.js' %}"></script>
 </body>
 
 </html>

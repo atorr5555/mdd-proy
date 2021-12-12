@@ -62,7 +62,7 @@
   <h2>Análisis exploratorio de datos</h2>
 
   <div id="form-container">
-    <form enctype="multipart/form-data" method="POST" id="form-file">
+    <form enctype="multipart/form-data" method="POST" id="form-file" action="/app/eda/process">
       {% csrf_token %}
       <div class="form-group">
         <label for="exampleFormControlFile1">Seleccionar archivo csv</label><br>

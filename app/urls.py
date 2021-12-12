@@ -17,4 +17,6 @@ urlpatterns = [
   path('column-listk', views.column_kmeans),
   path('kmeans/', views.kmeans),
   path('kmeans/process', views.kmeans_process),
+  path('assoc/', views.assoc),
+  path('assoc/process', views.assoc_process),
 ]
