@@ -19,4 +19,12 @@ urlpatterns = [
   path('kmeans/process', views.kmeans_process),
   path('assoc/', views.assoc),
   path('assoc/process', views.assoc_process),
+  path('adpro/', views.adpro),
+  path('column-listadpro', views.column_adpro),
+  path('adpro/process', views.adpro_process),
+  path('column-listadclas', views.column_adclas),
+  path('adclas/', views.adclas),
+  path('adclas/process', views.adclas_process),
+  path('adpro/download', views.download_adpro),
+  path('adclas/download', views.download_adclas),
 ]

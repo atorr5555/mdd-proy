@@ -12,6 +12,7 @@ seaborn = "*"
 sklearn = "*"
 kneed = "*"
 apyori = "*"
+graphviz = "*"
 
 [dev-packages]
 

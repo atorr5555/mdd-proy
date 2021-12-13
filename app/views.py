@@ -1,5 +1,6 @@
 from django.shortcuts import render
 from django.http import HttpResponse, HttpResponseRedirect
+from django.contrib import messages
 
 from .forms import UploadFileForm
 
@@ -16,9 +17,18 @@ from sklearn.cluster import KMeans
 from sklearn.metrics import pairwise_distances_argmin_min
 from kneed import KneeLocator
 from apyori import apriori
+from sklearn.tree import DecisionTreeRegressor
+from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
+from sklearn import model_selection
+from sklearn.tree import plot_tree
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.metrics import classification_report
+from sklearn.metrics import confusion_matrix
+from sklearn.metrics import accuracy_score
+import pickle
 
 # Imaginary function to handle an uploaded file.
-from .handle_form import handle_uploaded_file
+from .handle_form import handle_uploaded_file, handle_uploaded_file2
 
 # Create your views here.
 def index(request):
@@ -38,7 +48,7 @@ def eda_process(request):
     if form.is_valid():
       handle_uploaded_file(request.FILES['file'])
     if not os.path.exists('media/data.csv'):
-      return HttpResponseRedirect('/app/eda')
+      return HttpResponseRedirect('/app/eda/')
     dict_params = {}
     # Leer datos
     datos = pd.read_csv('media/data.csv')
@@ -119,7 +129,7 @@ def acd_process(request):
     if form.is_valid():
       handle_uploaded_file(request.FILES['file'])
     if not os.path.exists('media/data.csv'):
-      return HttpResponseRedirect('/app/acd')
+      return HttpResponseRedirect('/app/acd/')
     # Leer datos
     datos = pd.read_csv('media/data.csv')
     # Tipos de datos
@@ -181,7 +191,7 @@ def pca_process(request):
     if form.is_valid():
       handle_uploaded_file(request.FILES['file'])
     if not os.path.exists('media/data.csv'):
-      return HttpResponseRedirect('/app/pca')
+      return HttpResponseRedirect('/app/pca/')
     # Leer datos
     datos = pd.read_csv('media/data.csv')
     columnas_datos = datos.select_dtypes([np.number]).columns
@@ -247,7 +257,7 @@ def column(request):
 def clustering_process(request):
   if request.method == 'POST':
     if not os.path.exists('media/data.csv'):
-      return HttpResponseRedirect('/app/pca')
+      return HttpResponseRedirect('/app/clustering/')
     # Leer datos
     datos = pd.read_csv('media/data.csv')
     dicti = {}
@@ -305,7 +315,7 @@ def column_kmeans(request):
 def kmeans_process(request):
   if request.method == 'POST':
     if not os.path.exists('media/data.csv'):
-      return HttpResponseRedirect('/app/pca')
+      return HttpResponseRedirect('/app/kmeans/')
     # Leer datos
     datos = pd.read_csv('media/data.csv')
     dicti = {}
@@ -367,7 +377,7 @@ def assoc_process(request):
     else:
       print(form.errors)
     if not os.path.exists('media/data.csv'):
-      return HttpResponseRedirect('/app/assoc')
+      return HttpResponseRedirect('/app/assoc/')
     # Leer datos
     datos = pd.read_csv('media/data.csv', header=None)
     table = datos.head().to_html()
@@ -407,3 +417,325 @@ def assoc_process(request):
                                                     'reglas': reglas})
   else:
     return HttpResponseRedirect('/app/assoc/')
+
+def adpro(request):
+  os.system('rm -f static/media/tmdd-*.png')
+  form = UploadFileForm()
+  return render(request, 'adpro.html', {'form': form})
+
+def adpro_process(request):
+  if request.method == 'POST':
+    if not os.path.exists('media/data.csv'):
+      return HttpResponseRedirect('/app/adpro/')
+    # Leer datos
+    datos = pd.read_csv('media/data.csv')
+    table = datos.head().to_html()
+    var_pron = request.POST.get('seleccion', 0)
+    dicti = {}
+    for x in datos.columns:
+      dicti[x] = bool(request.POST.get(x, 0))
+    new_cols = []
+    for key in dicti:
+      if dicti[key]:
+        new_cols.append(key)
+    if var_pron in new_cols:
+      messages.add_message(request, messages.INFO, 'No se puede seleccionar la misma variable para ser predictora y pronosticada')
+      return HttpResponseRedirect('/app/adpro/')
+    # Grafica de la variable a pronosticar
+    plt.figure(figsize=(20, 5))
+    plt.plot(datos[var_pron], color='green', marker='o')
+    plt.grid(True)
+    plt.savefig('static/media/tmdd-graphvar.png')
+
+    profundidad = int(request.POST.get('profundidad', None))
+    division = int(request.POST.get('division', 2))
+    hoja = int(request.POST.get('hoja', 2))
+
+    X = np.array(datos[new_cols])
+    lista_aux = [var_pron]
+    Y = np.array(datos[lista_aux])
+    X_train, X_test, Y_train, Y_test = model_selection.train_test_split(X, Y, 
+                                                                    test_size = 0.2, 
+                                                                    random_state = 0, 
+                                                                    shuffle = True)
+    PronosticoAD = DecisionTreeRegressor(max_depth=profundidad, min_samples_split=division, min_samples_leaf=hoja)
+    PronosticoAD.fit(X_train, Y_train)
+
+    pickle_file_profundidad = open('static/media/profundidad.pickle', 'wb')
+    pickle.dump(profundidad, pickle_file_profundidad)
+    pickle_file_profundidad.close()
+
+    pickle_file_division = open('static/media/division.pickle', 'wb')
+    pickle.dump(division, pickle_file_division)
+    pickle_file_division.close()
+
+    pickle_file_hoja = open('static/media/hoja.pickle', 'wb')
+    pickle.dump(hoja, pickle_file_hoja)
+    pickle_file_hoja.close()
+
+    pickle_file_x_train = open('static/media/x_train.pickle', 'wb')
+    pickle.dump(X_train, pickle_file_x_train)
+    pickle_file_x_train.close()
+
+    pickle_file_y_train = open('static/media/y_train.pickle', 'wb')
+    pickle.dump(Y_train, pickle_file_y_train)
+    pickle_file_y_train.close()
+
+    pickle_file_new_cols = open('static/media/new_cols.pickle', 'wb')
+    pickle.dump(new_cols, pickle_file_new_cols)
+    pickle_file_new_cols.close()
+
+    Y_Pronostico = PronosticoAD.predict(X_test)
+    # Grafica de los resultados
+    plt.figure(figsize=(20, 5))
+    plt.plot(Y_test, color='green', marker='o', label='Valor real')
+    plt.plot(Y_Pronostico, color='red', marker='o', label='Valor pronosticado')
+    plt.grid(True)
+    plt.savefig('static/media/tmdd-graphvar_pron.png')
+    # Score
+    score = r2_score(Y_test, Y_Pronostico)
+    # MAE, MSE Y RMSE
+    MAE = mean_absolute_error(Y_test, Y_Pronostico)
+    MSE = mean_squared_error(Y_test, Y_Pronostico)
+    RMSE = mean_squared_error(Y_test, Y_Pronostico, squared=False)
+    # Importancia
+    importancia = pd.DataFrame({'Variable': list(datos[new_cols]),
+                            'Importancia': PronosticoAD.feature_importances_}).sort_values('Importancia', ascending=False)
+    importancia_df = importancia.to_html()
+    # Crear arbol
+    plt.figure(figsize=(25,25))  
+    plot_tree(PronosticoAD, feature_names = new_cols)
+    plt.savefig('static/media/tmdd-tree.png',dpi=300, bbox_inches = "tight")
+    form = UploadFileForm()
+
+    return render(request, 'adpro-processed.html', {'table': table,
+                                                    'score': score,
+                                                    'MAE': MAE,
+                                                    'MSE': MSE,
+                                                    'RMSE': RMSE,
+                                                    'importancia_df': importancia_df,
+                                                    'form': form})
+  else:
+    return HttpResponseRedirect('/app/adpro/')
+
+def column_adpro(request):
+  if request.method == 'POST':
+    form = UploadFileForm(data=request.POST, files=request.FILES)
+    if form.is_valid():
+      print('valid form')
+      handle_uploaded_file(request.FILES['file'])
+      datos = pd.read_csv('media/data.csv')
+      columnas_datos = datos.select_dtypes([np.number]).columns
+      datos = datos[columnas_datos]
+      columnas = datos.columns
+      columnas_texto = ",".join(columnas)
+    else:
+      print('invalid form')
+      print(form.errors)
+  return HttpResponse(columnas_texto)
+
+
+def column_adclas(request):
+  if request.method == 'POST':
+    form = UploadFileForm(data=request.POST, files=request.FILES)
+    if form.is_valid():
+      print('valid form')
+      handle_uploaded_file(request.FILES['file'])
+      datos = pd.read_csv('media/data.csv')
+      columnas_datos = datos.select_dtypes([np.number]).columns
+      columnas_texto_n = ",".join(columnas_datos)
+      columnas_c = list(datos.select_dtypes(include='object'))
+      columnas_texto_c = ",".join(columnas_c)
+      columnas_texto = columnas_texto_n + '|' + columnas_texto_c
+    else:
+      print('invalid form')
+      print(form.errors)
+  return HttpResponse(columnas_texto)
+
+def adclas(request):
+  os.system('rm -f static/media/tmdd-*.png')
+  form = UploadFileForm()
+  return render(request, 'adclas.html', {'form': form})
+
+def adclas_process(request):
+  if request.method == 'POST':
+    if not os.path.exists('media/data.csv'):
+      return HttpResponseRedirect('/app/adclas/')
+    # Leer datos
+    datos = pd.read_csv('media/data.csv')
+    table = datos.head().to_html()
+    var_pron = request.POST.get('seleccion', 0)
+    dicti = {}
+    for x in datos.columns:
+      dicti[x] = bool(request.POST.get(x, 0))
+    new_cols = []
+    for key in dicti:
+      if dicti[key]:
+        new_cols.append(key)
+
+    profundidad = int(request.POST.get('profundidad', None))
+    division = int(request.POST.get('division', 2))
+    hoja = int(request.POST.get('hoja', 2))
+
+    X = np.array(datos[new_cols])
+    lista_aux = [var_pron]
+    Y = np.array(datos[lista_aux])
+    X_train, X_validation, Y_train, Y_validation = model_selection.train_test_split(X, Y, 
+                                                                    test_size = 0.2, 
+                                                                    random_state = 0, 
+                                                                    shuffle = True)
+    ClasificacionAD = DecisionTreeClassifier(max_depth=profundidad, min_samples_split=division, min_samples_leaf=hoja)
+    ClasificacionAD.fit(X_train, Y_train)
+
+    list_save = [profundidad, division, hoja, X_train, Y_train]
+
+    pickle_file_profundidad = open('static/media/profundidad.pickle', 'wb')
+    pickle.dump(profundidad, pickle_file_profundidad)
+    pickle_file_profundidad.close()
+
+    pickle_file_division = open('static/media/division.pickle', 'wb')
+    pickle.dump(division, pickle_file_division)
+    pickle_file_division.close()
+
+    pickle_file_hoja = open('static/media/hoja.pickle', 'wb')
+    pickle.dump(hoja, pickle_file_hoja)
+    pickle_file_hoja.close()
+
+    pickle_file_x_train = open('static/media/x_train.pickle', 'wb')
+    pickle.dump(X_train, pickle_file_x_train)
+    pickle_file_x_train.close()
+
+    pickle_file_y_train = open('static/media/y_train.pickle', 'wb')
+    pickle.dump(Y_train, pickle_file_y_train)
+    pickle_file_y_train.close()
+
+    pickle_file_new_cols = open('static/media/new_cols.pickle', 'wb')
+    pickle.dump(new_cols, pickle_file_new_cols)
+    pickle_file_new_cols.close()
+
+    Y_Clasificacion = ClasificacionAD.predict(X_validation)
+    # Score
+    score = ClasificacionAD.score(X_validation, Y_validation)
+    # matriz de clasificacion
+    Y_Clasificacion = ClasificacionAD.predict(X_validation)
+    Matriz_Clasificacion = pd.crosstab(Y_validation.ravel(), 
+                                      Y_Clasificacion, 
+                                      rownames=['Real'], 
+                                      colnames=['Clasificación'])
+    matriz = Matriz_Clasificacion.to_html() 
+
+    report_t = classification_report(Y_validation, Y_Clasificacion, output_dict=True)
+    report_df = pd.DataFrame(report_t).transpose()
+    report = report_df.to_html()
+    # Importancia
+    importancia = pd.DataFrame({'Variable': list(datos[new_cols]),
+                            'Importancia': ClasificacionAD.feature_importances_}).sort_values('Importancia', ascending=False)
+    importancia_df = importancia.to_html()
+    # Crear arbol
+    plt.figure(figsize=(25,25))  
+    plot_tree(ClasificacionAD, feature_names = new_cols, class_names = Y_Clasificacion)
+    plt.savefig('static/media/tmdd-tree.png',dpi=300, bbox_inches = "tight")
+
+    form = UploadFileForm()
+
+    return render(request, 'adclas-processed.html', {'table': table,
+                                                    'score': score,
+                                                    'matriz': matriz,
+                                                    'report': report,
+                                                    'importancia_df': importancia_df,
+                                                    'new_cols': new_cols,
+                                                    'var_pron': var_pron,
+                                                    'form': form})
+  else:
+    return HttpResponseRedirect('/app/adclas/')
+
+def download_adpro(request):
+  if request.method != 'POST':
+    return HttpResponseRedirect('/app/')
+  if request.method == 'POST':
+    form = UploadFileForm(data=request.POST, files=request.FILES)
+    handle_uploaded_file2(request.FILES['file'])
+    datos = pd.read_csv('media/data-ad.csv')
+
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename=export.csv'
+
+    pickle_file_profundidad = open('static/media/profundidad.pickle', 'rb')
+    profundidad = pickle.load(pickle_file_profundidad)
+    pickle_file_profundidad.close()
+
+    pickle_file_division = open('static/media/division.pickle', 'rb')
+    division = pickle.load(pickle_file_division)
+    pickle_file_division.close()
+
+    pickle_file_hoja = open('static/media/hoja.pickle', 'rb')
+    hoja = pickle.load(pickle_file_hoja)
+    pickle_file_hoja.close()
+
+    pickle_file_x_train = open('static/media/x_train.pickle', 'rb')
+    X_train = pickle.load(pickle_file_x_train)
+    pickle_file_x_train.close()
+
+    pickle_file_y_train = open('static/media/y_train.pickle', 'rb')
+    Y_train = pickle.load(pickle_file_y_train)
+    pickle_file_y_train.close()
+
+    pickle_file_new_cols = open('static/media/new_cols.pickle', 'rb')
+    new_cols = pickle.load(pickle_file_new_cols)
+    pickle_file_new_cols.close()
+
+    PronosticoAD = DecisionTreeRegressor(max_depth=profundidad, min_samples_split=division, min_samples_leaf=hoja)
+    PronosticoAD.fit(X_train, Y_train)
+
+    X = np.array(datos[new_cols])
+    Y_Pronostico = PronosticoAD.predict(X)
+    datos['Pronostico'] = Y_Pronostico
+
+    datos.to_csv(index=False, path_or_buf=response)  # with other applicable parameters
+    return response
+
+def download_adclas(request):
+  if request.method != 'POST':
+    return HttpResponseRedirect('/app/')
+  if request.method == 'POST':
+    # Leer datos
+    form = UploadFileForm(data=request.POST, files=request.FILES)
+    handle_uploaded_file2(request.FILES['file'])
+    datos = pd.read_csv('media/data-ad.csv')
+
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename=export.csv'
+
+    pickle_file_profundidad = open('static/media/profundidad.pickle', 'rb')
+    profundidad = pickle.load(pickle_file_profundidad)
+    pickle_file_profundidad.close()
+
+    pickle_file_division = open('static/media/division.pickle', 'rb')
+    division = pickle.load(pickle_file_division)
+    pickle_file_division.close()
+
+    pickle_file_hoja = open('static/media/hoja.pickle', 'rb')
+    hoja = pickle.load(pickle_file_hoja)
+    pickle_file_hoja.close()
+
+    pickle_file_x_train = open('static/media/x_train.pickle', 'rb')
+    X_train = pickle.load(pickle_file_x_train)
+    pickle_file_x_train.close()
+
+    pickle_file_y_train = open('static/media/y_train.pickle', 'rb')
+    Y_train = pickle.load(pickle_file_y_train)
+    pickle_file_y_train.close()
+
+    pickle_file_new_cols = open('static/media/new_cols.pickle', 'rb')
+    new_cols = pickle.load(pickle_file_new_cols)
+    pickle_file_new_cols.close()
+
+    ClasificacionAD = DecisionTreeClassifier(max_depth=profundidad, min_samples_split=division, min_samples_leaf=hoja)
+    ClasificacionAD.fit(X_train, Y_train)
+
+    X = np.array(datos[new_cols])
+    Y_Pronostico = ClasificacionAD.predict(X)
+    datos['Pronostico'] = Y_Pronostico
+
+    datos.to_csv(index=False, path_or_buf=response)  # with other applicable parameters
+    return response

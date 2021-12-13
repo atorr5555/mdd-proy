@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "abc3727db12d34132feb212de1b312a13ed75afd9a76754f3c57fcf58466c566"
+            "sha256": "6c086930378e8d9663048bc8fcfea7749d7578b1dc1a69c23f4c426f1b98deb5"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -76,6 +76,14 @@
             ],
             "markers": "python_version >= '3.7'",
             "version": "==4.28.3"
+        },
+        "graphviz": {
+            "hashes": [
+                "sha256:60704af002770700b099e5d684b7f2bd59c06bbaec8f575def7fba7a31a1a27a",
+                "sha256:b42554a1c47f24a9473b7f4e380d17b228586a067c97ea69d5354d6074be8dfd"
+            ],
+            "index": "pypi",
+            "version": "==0.19"
         },
         "joblib": {
             "hashes": [

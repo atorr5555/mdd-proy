@@ -6,3 +6,11 @@ def handle_uploaded_file(f):
   with open('media/data.csv', 'wb') as destination:
     for chunk in f.chunks():
       destination.write(chunk)
+
+
+def handle_uploaded_file2(f):
+  os.system('rm -f static/media/tmdd-*.png')
+  os.system('rm -f media/data.csv')
+  with open('media/data-ad.csv', 'wb') as destination:
+    for chunk in f.chunks():
+      destination.write(chunk)
