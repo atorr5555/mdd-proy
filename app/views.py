@@ -32,12 +32,13 @@ from .handle_form import handle_uploaded_file, handle_uploaded_file2
 
 # Create your views here.
 def index(request):
-  os.system('rm -f static/media/tmdd-*.png')
+  os.system('rm -f static/media/tmdd-*' + str(hash(request.session.session_key)) + '.png')
+  os.system('rm -f media/data*' + str(hash(request.session.session_key)) + '.csv')
   #return HttpResponse('Hello')
   return render(request, 'index.html')
 
 def eda(request):
-  os.system('rm -f static/media/tmdd-*.png')
+  os.system('rm -f static/media/tmdd-*' + str(hash(request.session.session_key)) + '.png')
   form = UploadFileForm()
   return render(request, 'eda.html', {'form': form})
 
@@ -46,12 +47,12 @@ def eda_process(request):
   if request.method == 'POST':
     form = UploadFileForm(request.POST, request.FILES)
     if form.is_valid():
-      handle_uploaded_file(request.FILES['file'])
-    if not os.path.exists('media/data.csv'):
+      handle_uploaded_file(request.FILES['file'], hash(request.session.session_key))
+    if not os.path.exists('media/data' + str(hash(request.session.session_key)) + '.csv'):
       return HttpResponseRedirect('/app/eda/')
     dict_params = {}
     # Leer datos
-    datos = pd.read_csv('media/data.csv')
+    datos = pd.read_csv('media/data' + str(hash(request.session.session_key)) + '.csv')
     table = datos.head().to_html()
     dict_params['table'] = table
     #Dimensiones de los datos
@@ -72,7 +73,7 @@ def eda_process(request):
     # Histogramas
     plt.figure()
     datos.hist(figsize=(14,14), xrot=45)
-    plt.savefig('static/media/tmdd-hist-num.png')
+    plt.savefig('static/media/tmdd-hist-num' + str(hash(request.session.session_key)) + '.png')
     # Resumen estadistico
     res_estadistico_df = datos.describe()
     res_estadistico = res_estadistico_df.to_html()
@@ -83,7 +84,7 @@ def eda_process(request):
     for col in datos.select_dtypes([np.number]).columns:
       plt.figure()
       sns.boxplot(col, data=datos)
-      name = 'static/media/tmdd-boxplot' + str(i) + '.png'
+      name = 'static/media/tmdd-boxplot' + str(i) + '' + str(hash(request.session.session_key)) + '.png'
       i += 1
       plt.savefig(name)
       list_boxplots.append(name)
@@ -100,7 +101,7 @@ def eda_process(request):
         if datos[col].nunique()<34:
           plt.figure()
           sns.countplot(y=col, data=datos)
-          name = 'static/media/tmdd-countplot' + str(i) + '.png'
+          name = 'static/media/tmdd-countplot' + str(i) + '' + str(hash(request.session.session_key)) + '.png'
           i += 1
           plt.savefig(name)
           list_countplot.append(name)
@@ -111,14 +112,14 @@ def eda_process(request):
     # Mapa de calor de correlaciones
     plt.figure(figsize=(14,7))
     sns.heatmap(datos.corr(), cmap='RdBu_r', annot=True)
-    plt.savefig('static/media/tmdd-corr.png')
+    plt.savefig('static/media/tmdd-corr' + str(hash(request.session.session_key)) + '.png')
 
     return render(request, 'eda-processed.html', dict_params)
   else:
     return HttpResponseRedirect('/app/eda/')
 
 def acd(request):
-  os.system('rm -f static/media/tmdd-*.png')
+  os.system('rm -f static/media/tmdd-*' + str(hash(request.session.session_key)) + '.png')
   form = UploadFileForm()
   return render(request, 'acd.html', {'form': form})
 
@@ -127,11 +128,11 @@ def acd_process(request):
   if request.method == 'POST':
     form = UploadFileForm(request.POST, request.FILES)
     if form.is_valid():
-      handle_uploaded_file(request.FILES['file'])
-    if not os.path.exists('media/data.csv'):
+      handle_uploaded_file(request.FILES['file'], hash(request.session.session_key))
+    if not os.path.exists('media/data' + str(hash(request.session.session_key)) + '.csv'):
       return HttpResponseRedirect('/app/acd/')
     # Leer datos
-    datos = pd.read_csv('media/data.csv')
+    datos = pd.read_csv('media/data' + str(hash(request.session.session_key)) + '.csv')
     # Tipos de datos
     data_types_se = datos.dtypes
     data_types_df = data_types_se.to_frame()
@@ -145,12 +146,12 @@ def acd_process(request):
     # Evaluacion visual
     plt.figure()
     sns.pairplot(datos)
-    plt.savefig('static/media/tmdd-eval-visual.png')
+    plt.savefig('static/media/tmdd-eval-visual' + str(hash(request.session.session_key)) + '.png')
     # Matriz de correlaciones
     plt.figure(figsize=(14,7))
     MatrizInf = np.triu(datos.corr())
     sns.heatmap(datos.corr(), cmap='RdBu_r', annot=True, mask=MatrizInf)
-    plt.savefig('static/media/tmdd-corr.png')
+    plt.savefig('static/media/tmdd-corr' + str(hash(request.session.session_key)) + '.png')
     # Columnas para seleccion
     columnas = datos.columns
     return render(request, 'acd-processed.html', {'data_types': data_types,
@@ -164,10 +165,10 @@ def download(request):
   if request.method != 'POST':
     return HttpResponseRedirect('/app/')
   # Leer datos
-  datos = pd.read_csv('media/data.csv')
+  datos = pd.read_csv('media/data' + str(hash(request.session.session_key)) + '.csv')
   if request.method == 'POST':
     response = HttpResponse(content_type='text/csv')
-    response['Content-Disposition'] = 'attachment; filename=export.csv'
+    response['Content-Disposition'] = 'attachment; filename=export' + str(hash(request.session.session_key)) + '.csv'
     dicti = {}
     for x in datos.columns:
       dicti[x] = bool(request.POST.get(x, 0))
@@ -180,7 +181,7 @@ def download(request):
     return response
 
 def pca(request):
-  os.system('rm -f static/media/tmdd-*.png')
+  os.system('rm -f static/media/tmdd-*' + str(hash(request.session.session_key)) + '.png')
   form = UploadFileForm()
   return render(request, 'pca.html', {'form': form})
 
@@ -189,11 +190,11 @@ def pca_process(request):
   if request.method == 'POST':
     form = UploadFileForm(request.POST, request.FILES)
     if form.is_valid():
-      handle_uploaded_file(request.FILES['file'])
-    if not os.path.exists('media/data.csv'):
+      handle_uploaded_file(request.FILES['file'], hash(request.session.session_key))
+    if not os.path.exists('media/data' + str(hash(request.session.session_key)) + '.csv'):
       return HttpResponseRedirect('/app/pca/')
     # Leer datos
-    datos = pd.read_csv('media/data.csv')
+    datos = pd.read_csv('media/data' + str(hash(request.session.session_key)) + '.csv')
     columnas_datos = datos.select_dtypes([np.number]).columns
     datos = datos[columnas_datos]
     # Datos normalizados
@@ -210,7 +211,7 @@ def pca_process(request):
     plt.xlabel('Número de componentes')
     plt.ylabel('Varianza acumulada')
     plt.grid()
-    plt.savefig('static/media/tmdd-varacum.png')
+    plt.savefig('static/media/tmdd-varacum' + str(hash(request.session.session_key)) + '.png')
     #Cargas de componentes
     CargasComponentes = pd.DataFrame(abs(pca.components_), columns=columnas_datos)
     cargas = CargasComponentes.to_html()
@@ -224,7 +225,7 @@ def pca_process(request):
     return HttpResponseRedirect('/app/pca/')
 
 def clustering(request):
-  os.system('rm -f static/media/tmdd-*.png')
+  os.system('rm -f static/media/tmdd-*' + str(hash(request.session.session_key)) + '.png')
   form = UploadFileForm()
   return render(request, 'clustering.html', {'form': form})
 
@@ -233,8 +234,8 @@ def column(request):
     form = UploadFileForm(data=request.POST, files=request.FILES)
     if form.is_valid():
       print('valid form')
-      handle_uploaded_file(request.FILES['file'])
-      datos = pd.read_csv('media/data.csv')
+      handle_uploaded_file(request.FILES['file'], hash(request.session.session_key))
+      datos = pd.read_csv('media/data' + str(hash(request.session.session_key)) + '.csv')
       columnas = datos.columns
       columnas_texto = ",".join(columnas)
       columnas_datos = datos.select_dtypes([np.number]).columns
@@ -248,7 +249,7 @@ def column(request):
       plt.figure(figsize=(10, 7))
       plt.ylabel('Distancia')
       Arbol = shc.dendrogram(shc.linkage(MEstandarizada, method='complete', metric='euclidean'))
-      plt.savefig('static/media/tmdd-arbol.png')
+      plt.savefig('static/media/tmdd-arbol' + str(hash(request.session.session_key)) + '.png')
     else:
       print('invalid form')
       print(form.errors)
@@ -256,10 +257,10 @@ def column(request):
 
 def clustering_process(request):
   if request.method == 'POST':
-    if not os.path.exists('media/data.csv'):
+    if not os.path.exists('media/data' + str(hash(request.session.session_key)) + '.csv'):
       return HttpResponseRedirect('/app/clustering/')
     # Leer datos
-    datos = pd.read_csv('media/data.csv')
+    datos = pd.read_csv('media/data' + str(hash(request.session.session_key)) + '.csv')
     dicti = {}
     for x in datos.columns:
       dicti[x] = bool(request.POST.get(x, 0))
@@ -280,7 +281,7 @@ def clustering_process(request):
     plt.figure(figsize=(10, 7))
     plt.ylabel('Distancia')
     Arbol = shc.dendrogram(shc.linkage(MEstandarizada, method='complete', metric='euclidean'))
-    plt.savefig('static/media/tmdd-arbol.png')
+    plt.savefig('static/media/tmdd-arbol' + str(hash(request.session.session_key)) + '.png')
     #Se crean las etiquetas de los elementos en los clústeres
     MJerarquico = AgglomerativeClustering(n_clusters=n_clustersv, linkage='complete', affinity='euclidean')
     MJerarquico.fit_predict(MEstandarizada)
@@ -294,7 +295,7 @@ def clustering_process(request):
     return HttpResponseRedirect('/app/clustering/')
 
 def kmeans(request):
-  os.system('rm -f static/media/tmdd-*.png')
+  os.system('rm -f static/media/tmdd-*' + str(hash(request.session.session_key)) + '.png')
   form = UploadFileForm()
   return render(request, 'kmeans.html', {'form': form})
 
@@ -303,8 +304,8 @@ def column_kmeans(request):
     form = UploadFileForm(data=request.POST, files=request.FILES)
     if form.is_valid():
       print('valid form')
-      handle_uploaded_file(request.FILES['file'])
-      datos = pd.read_csv('media/data.csv')
+      handle_uploaded_file(request.FILES['file'], hash(request.session.session_key))
+      datos = pd.read_csv('media/data' + str(hash(request.session.session_key)) + '.csv')
       columnas = datos.columns
       columnas_texto = ",".join(columnas)
     else:
@@ -314,10 +315,10 @@ def column_kmeans(request):
 
 def kmeans_process(request):
   if request.method == 'POST':
-    if not os.path.exists('media/data.csv'):
+    if not os.path.exists('media/data' + str(hash(request.session.session_key)) + '.csv'):
       return HttpResponseRedirect('/app/kmeans/')
     # Leer datos
-    datos = pd.read_csv('media/data.csv')
+    datos = pd.read_csv('media/data' + str(hash(request.session.session_key)) + '.csv')
     dicti = {}
     for x in datos.columns:
       dicti[x] = bool(request.POST.get(x, 0))
@@ -349,7 +350,7 @@ def kmeans_process(request):
     n_clustersv = kl.elbow
     plt.style.use('ggplot')
     kl.plot_knee()
-    plt.savefig('static/media/tmdd-codo.png')
+    plt.savefig('static/media/tmdd-codo' + str(hash(request.session.session_key)) + '.png')
     #Se crean las etiquetas de los elementos en los clusters
     MParticional = KMeans(n_clusters=n_clustersv, random_state=0).fit(MEstandarizada)
     MParticional.predict(MEstandarizada)
@@ -364,7 +365,7 @@ def kmeans_process(request):
     return HttpResponseRedirect('/app/kmeans/')
 
 def assoc(request):
-  os.system('rm -f static/media/tmdd-*.png')
+  os.system('rm -f static/media/tmdd-*' + str(hash(request.session.session_key)) + '.png')
   form = UploadFileForm()
   return render(request, 'assoc.html', {'form': form})
 
@@ -373,13 +374,13 @@ def assoc_process(request):
   if request.method == 'POST':
     form = UploadFileForm(request.POST, request.FILES)
     if form.is_valid():
-      handle_uploaded_file(request.FILES['file'])
+      handle_uploaded_file(request.FILES['file'], hash(request.session.session_key))
     else:
       print(form.errors)
-    if not os.path.exists('media/data.csv'):
+    if not os.path.exists('media/data' + str(hash(request.session.session_key)) + '.csv'):
       return HttpResponseRedirect('/app/assoc/')
     # Leer datos
-    datos = pd.read_csv('media/data.csv', header=None)
+    datos = pd.read_csv('media/data' + str(hash(request.session.session_key)) + '.csv', header=None)
     table = datos.head().to_html()
     #Se incluyen todas las transacciones en una sola lista
     Transacciones = datos.values.reshape(-1).tolist()
@@ -395,7 +396,7 @@ def assoc_process(request):
     plt.ylabel('Item')
     plt.xlabel('Frecuencia')
     plt.barh(ListaM['Item'], width=ListaM['Frecuencia'], color='blue')
-    plt.savefig('static/media/tmdd-freq.png')
+    plt.savefig('static/media/tmdd-freq' + str(hash(request.session.session_key)) + '.png')
 
     MoviesLista = datos.stack().groupby(level=0).apply(list).tolist()
 
@@ -419,16 +420,16 @@ def assoc_process(request):
     return HttpResponseRedirect('/app/assoc/')
 
 def adpro(request):
-  os.system('rm -f static/media/tmdd-*.png')
+  os.system('rm -f static/media/tmdd-*' + str(hash(request.session.session_key)) + '.png')
   form = UploadFileForm()
   return render(request, 'adpro.html', {'form': form})
 
 def adpro_process(request):
   if request.method == 'POST':
-    if not os.path.exists('media/data.csv'):
+    if not os.path.exists('media/data' + str(hash(request.session.session_key)) + '.csv'):
       return HttpResponseRedirect('/app/adpro/')
     # Leer datos
-    datos = pd.read_csv('media/data.csv')
+    datos = pd.read_csv('media/data' + str(hash(request.session.session_key)) + '.csv')
     table = datos.head().to_html()
     var_pron = request.POST.get('seleccion', 0)
     dicti = {}
@@ -445,7 +446,7 @@ def adpro_process(request):
     plt.figure(figsize=(20, 5))
     plt.plot(datos[var_pron], color='green', marker='o')
     plt.grid(True)
-    plt.savefig('static/media/tmdd-graphvar.png')
+    plt.savefig('static/media/tmdd-graphvar' + str(hash(request.session.session_key)) + '.png')
 
     profundidad = int(request.POST.get('profundidad', None))
     division = int(request.POST.get('division', 2))
@@ -491,7 +492,7 @@ def adpro_process(request):
     plt.plot(Y_test, color='green', marker='o', label='Valor real')
     plt.plot(Y_Pronostico, color='red', marker='o', label='Valor pronosticado')
     plt.grid(True)
-    plt.savefig('static/media/tmdd-graphvar_pron.png')
+    plt.savefig('static/media/tmdd-graphvar_pron' + str(hash(request.session.session_key)) + '.png')
     # Score
     score = r2_score(Y_test, Y_Pronostico)
     # MAE, MSE Y RMSE
@@ -505,7 +506,7 @@ def adpro_process(request):
     # Crear arbol
     plt.figure(figsize=(25,25))  
     plot_tree(PronosticoAD, feature_names = new_cols)
-    plt.savefig('static/media/tmdd-tree.png',dpi=300, bbox_inches = "tight")
+    plt.savefig('static/media/tmdd-tree' + str(hash(request.session.session_key)) + '.png',dpi=300, bbox_inches = "tight")
     form = UploadFileForm()
 
     return render(request, 'adpro-processed.html', {'table': table,
@@ -523,8 +524,8 @@ def column_adpro(request):
     form = UploadFileForm(data=request.POST, files=request.FILES)
     if form.is_valid():
       print('valid form')
-      handle_uploaded_file(request.FILES['file'])
-      datos = pd.read_csv('media/data.csv')
+      handle_uploaded_file(request.FILES['file'], hash(request.session.session_key))
+      datos = pd.read_csv('media/data' + str(hash(request.session.session_key)) + '.csv')
       columnas_datos = datos.select_dtypes([np.number]).columns
       datos = datos[columnas_datos]
       columnas = datos.columns
@@ -540,8 +541,8 @@ def column_adclas(request):
     form = UploadFileForm(data=request.POST, files=request.FILES)
     if form.is_valid():
       print('valid form')
-      handle_uploaded_file(request.FILES['file'])
-      datos = pd.read_csv('media/data.csv')
+      handle_uploaded_file(request.FILES['file'], hash(request.session.session_key))
+      datos = pd.read_csv('media/data' + str(hash(request.session.session_key)) + '.csv')
       columnas_datos = datos.select_dtypes([np.number]).columns
       columnas_texto_n = ",".join(columnas_datos)
       columnas_c = list(datos.select_dtypes(include='object'))
@@ -553,16 +554,16 @@ def column_adclas(request):
   return HttpResponse(columnas_texto)
 
 def adclas(request):
-  os.system('rm -f static/media/tmdd-*.png')
+  os.system('rm -f static/media/tmdd-*' + str(hash(request.session.session_key)) + '.png')
   form = UploadFileForm()
   return render(request, 'adclas.html', {'form': form})
 
 def adclas_process(request):
   if request.method == 'POST':
-    if not os.path.exists('media/data.csv'):
+    if not os.path.exists('media/data' + str(hash(request.session.session_key)) + '.csv'):
       return HttpResponseRedirect('/app/adclas/')
     # Leer datos
-    datos = pd.read_csv('media/data.csv')
+    datos = pd.read_csv('media/data' + str(hash(request.session.session_key)) + '.csv')
     table = datos.head().to_html()
     var_pron = request.POST.get('seleccion', 0)
     dicti = {}
@@ -634,7 +635,7 @@ def adclas_process(request):
     # Crear arbol
     plt.figure(figsize=(25,25))  
     plot_tree(ClasificacionAD, feature_names = new_cols, class_names = Y_Clasificacion)
-    plt.savefig('static/media/tmdd-tree.png',dpi=300, bbox_inches = "tight")
+    plt.savefig('static/media/tmdd-tree' + str(hash(request.session.session_key)) + '.png',dpi=300, bbox_inches = "tight")
 
     form = UploadFileForm()
 
@@ -654,11 +655,11 @@ def download_adpro(request):
     return HttpResponseRedirect('/app/')
   if request.method == 'POST':
     form = UploadFileForm(data=request.POST, files=request.FILES)
-    handle_uploaded_file2(request.FILES['file'])
-    datos = pd.read_csv('media/data-ad.csv')
+    handle_uploaded_file2(request.FILES['file'], hash(request.session.session_key))
+    datos = pd.read_csv('media/data-ad' + str(hash(request.session.session_key)) + '.csv')
 
     response = HttpResponse(content_type='text/csv')
-    response['Content-Disposition'] = 'attachment; filename=export.csv'
+    response['Content-Disposition'] = 'attachment; filename=export' + str(hash(request.session.session_key)) + '.csv'
 
     pickle_file_profundidad = open('static/media/profundidad.pickle', 'rb')
     profundidad = pickle.load(pickle_file_profundidad)
@@ -700,11 +701,11 @@ def download_adclas(request):
   if request.method == 'POST':
     # Leer datos
     form = UploadFileForm(data=request.POST, files=request.FILES)
-    handle_uploaded_file2(request.FILES['file'])
-    datos = pd.read_csv('media/data-ad.csv')
+    handle_uploaded_file2(request.FILES['file'], hash(request.session.session_key))
+    datos = pd.read_csv('media/data-ad' + str(hash(request.session.session_key)) + '.csv')
 
     response = HttpResponse(content_type='text/csv')
-    response['Content-Disposition'] = 'attachment; filename=export.csv'
+    response['Content-Disposition'] = 'attachment; filename=export' + str(hash(request.session.session_key)) + '.csv'
 
     pickle_file_profundidad = open('static/media/profundidad.pickle', 'rb')
     profundidad = pickle.load(pickle_file_profundidad)
