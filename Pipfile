@@ -14,6 +14,7 @@ kneed = "*"
 apyori = "*"
 graphviz = "*"
 gunicorn = "*"
+whitenoise = "*"
 
 [dev-packages]
 
