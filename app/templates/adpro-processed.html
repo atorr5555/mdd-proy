@@ -67,11 +67,11 @@
 
     <h4>Gráfica de la variable a pronosticar</h4>
 
-    <img class="images-width" src="{% static 'media/tmdd-graphvar.png' %}">
+    <img class="images-width" src="/static/media/tmdd-graphvar{{hash}}.png">
 
     <h4>Gráfica de los valores reales y los pronósticos</h4>
 
-    <img class="images-width" src="{% static 'media/tmdd-graphvar_pron.png' %}">
+    <img class="images-width" src="/static/media/tmdd-graphvar_pron{{hash}}.png">
 
     <h4>Score, MAE, MSE y RMSE</h4>
 
@@ -84,9 +84,9 @@
 
     {{importancia_df|safe}}
 
-    <h4>Arbol del modelo</h4>
+    <h4>Árbol del modelo</h4>
 
-    <img class="images-width" src="{% static 'media/tmdd-tree.png' %}">
+    <img class="images-width" src="/static/media/tmdd-tree{{hash}}.png">
 
     <h4>Generar pronósticos</h4>
 

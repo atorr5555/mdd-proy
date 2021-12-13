@@ -30,7 +30,6 @@ $(document).ready(function () {
         $("#form-variables").append(`
         
         `);
-        $("body").append(`<img class="images-width" src="/static/media/tmdd-arbol.png">`);
         loadingFunct()
         change()
       }

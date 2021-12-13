@@ -114,6 +114,7 @@ def eda_process(request):
     sns.heatmap(datos.corr(), cmap='RdBu_r', annot=True)
     plt.savefig('static/media/tmdd-corr' + str(hash(request.session.session_key)) + '.png')
 
+    dict_params['hash'] = str(hash(request.session.session_key))
     return render(request, 'eda-processed.html', dict_params)
   else:
     return HttpResponseRedirect('/app/eda/')
@@ -156,7 +157,8 @@ def acd_process(request):
     columnas = datos.columns
     return render(request, 'acd-processed.html', {'data_types': data_types,
                                                   'faltantes': faltantes,
-                                                  'columnas': columnas})
+                                                  'columnas': columnas,
+                                                  'hash': str(hash(request.session.session_key))})
   else:
     return HttpResponseRedirect('/app/acd/')
 
@@ -220,7 +222,8 @@ def pca_process(request):
     columnas = datos.columns
     return render(request, 'pca-processed.html', {'columnas': columnas,
                                                   'componentes': componentes,
-                                                  'cargas': cargas})
+                                                  'cargas': cargas,
+                                                  'hash': str(hash(request.session.session_key))})
   else:
     return HttpResponseRedirect('/app/pca/')
 
@@ -290,7 +293,8 @@ def clustering_process(request):
     centroides = CentroidesH.to_html()
 
     return render(request, 'clustering-processed.html', {'table_est': table_est,
-                                                        'centroides': centroides})
+                                                        'centroides': centroides,
+                                                        'hash': str(hash(request.session.session_key))})
   else:
     return HttpResponseRedirect('/app/clustering/')
 
@@ -360,7 +364,8 @@ def kmeans_process(request):
 
 
     return render(request, 'kmeans-processed.html', {'table_est': table_est,
-                                                        'centroides': centroides})
+                                                        'centroides': centroides,
+                                                        'hash': str(hash(request.session.session_key))})
   else:
     return HttpResponseRedirect('/app/kmeans/')
 
@@ -415,7 +420,8 @@ def assoc_process(request):
     reglas = df.to_html()
 
     return render(request, 'assoc-processed.html', {'table': table,
-                                                    'reglas': reglas})
+                                                    'reglas': reglas,
+                                                    'hash': str(hash(request.session.session_key))})
   else:
     return HttpResponseRedirect('/app/assoc/')
 
@@ -515,7 +521,8 @@ def adpro_process(request):
                                                     'MSE': MSE,
                                                     'RMSE': RMSE,
                                                     'importancia_df': importancia_df,
-                                                    'form': form})
+                                                    'form': form,
+                                                    'hash': str(hash(request.session.session_key))})
   else:
     return HttpResponseRedirect('/app/adpro/')
 
@@ -646,7 +653,8 @@ def adclas_process(request):
                                                     'importancia_df': importancia_df,
                                                     'new_cols': new_cols,
                                                     'var_pron': var_pron,
-                                                    'form': form})
+                                                    'form': form,
+                                                    'hash': str(hash(request.session.session_key))})
   else:
     return HttpResponseRedirect('/app/adclas/')
 
