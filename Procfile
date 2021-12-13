@@ -1,0 +1,1 @@
+web: gunicorn tmdd.wsgi --log-file -

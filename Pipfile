@@ -13,6 +13,7 @@ sklearn = "*"
 kneed = "*"
 apyori = "*"
 graphviz = "*"
+gunicorn = "*"
 
 [dev-packages]
 
